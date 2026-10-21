@@ -1,0 +1,6 @@
+Tripwire
+Copyright (c) 2026 Bhavana Shah (MIT License, see LICENSE).
+
+tripwire_pattern/policy.py, tripwire_pattern/authorization.py and tripwire_pattern/redact.py are adapted
+from code by Ayush Devani (https://github.com/AYUSHDEVANI/tripwire-aws-agent), which is published under
+the MIT License. Original copyright: Ayush, Abhishek, Team Lead (Tripwire Team), 2026.

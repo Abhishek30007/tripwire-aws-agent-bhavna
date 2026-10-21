@@ -1,0 +1,9 @@
+strands-agents>=1.0
+boto3
+requests
+pandas
+streamlit
+pytest
+# Run the Decider model locally (separate process):
+#   pip install strands-decider
+#   strands-decider serve StrandsAgents/strands-decider-2B-hobson-v21 --port 8000
