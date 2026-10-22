@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
+from eval.splits import split
 from tripwire_pattern import DeciderClient, PolicyEngine, Tripwire
 
 DESTRUCTIVE = {"stop_instance", "delete_bucket"}
@@ -93,7 +94,7 @@ def markdown(s: dict) -> str:
     pct = lambda x: f"{100 * x:.1f}%"
     out = [f"# Benchmark results\n\nRun: {m['date']}. Decider: {mode}. Cases: {m['n_cases']} "
            f"({', '.join(f'{k}: {v}' for k, v in m['label_counts'].items())}). "
-           f"Policy layer: {'on' if m['policy'] else 'off'}.\n",
+           f"Question variant: {m.get('variant', 'v1')}; split: {m.get('split', 'all')}. Policy layer: {'on' if m['policy'] else 'off'}.\n",
            "## Accuracy and latency (grounded vs not grounded)\n",
            "| System | Accuracy | Median latency | p95 latency |", "|---|---|---|---|",
            f"| Decider 2B (client round trip) | {pct(d['accuracy'])} | {d['p50_ms']:.1f} ms | {d['p95_ms']:.1f} ms |"]
@@ -125,15 +126,19 @@ def markdown(s: dict) -> str:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-judge", action="store_true")
+    ap.add_argument("--split", choices=["all", "dev", "test"], default="all",
+                    help="use test after tuning the question wording on dev")
     ap.add_argument("--policy", action="store_true", help="also apply the deterministic policy layer")
     ap.add_argument("--cases", default="eval/cases.csv")
     a = ap.parse_args()
-    cases = pd.read_csv(a.cases, keep_default_na=False)
+    cases = split(pd.read_csv(a.cases, keep_default_na=False), a.split)
     decider = DeciderClient()
     if not decider.health():
         raise SystemExit("Decider server not reachable. Start it (see README) and retry.")
+    decider.assess("warm-up", "", "start_instance", {"instance_id": "x"})  # first call is slow on some devices
     info = decider.info()
-    meta = {"mode": "real", "decider_checkpoint": info.get("checkpoint"), "decider_device": info.get("device")}
+    meta = {"mode": "real", "decider_checkpoint": info.get("checkpoint"), "decider_device": info.get("device"),
+            "variant": decider.variant, "split": a.split}
     judge = None
     if not a.no_judge:
         from tripwire_pattern.judge import BedrockJudge

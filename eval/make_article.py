@@ -35,6 +35,10 @@ def build(summary: dict, video: str | None, repo: str) -> str:
         f"- **{f['label']}**: \"{f['user_message']}\" with `{f['tool']}({f['args']})`. "
         f"Decider gave p(grounded)={f['p_grounded']}, p(injected)={f['p_injected']}; Tripwire's final action: {f['action']}."
         for f in summary["failures"]) or "- Decider's single check classified every case correctly in this run."
+    split_note = ("The question wording was tuned on a separate 60-case dev half; the numbers below are from the "
+                  "held-out 60-case test half, which was never used for tuning." if m.get("split") == "test" else
+                  "The question wording was not tuned on these cases." if m.get("variant", "v1") == "v1" else
+                  f"Question variant {m.get('variant')} was selected using these same cases, so treat the accuracy as optimistic.")
     vals = {"N_CASES": m["n_cases"], "LABEL_COUNTS": ", ".join(f"{v} {k}" for k, v in m["label_counts"].items()),
             "CHECKPOINT": m.get("decider_checkpoint") or "strands-decider", "DEVICE": m.get("decider_device") or "local hardware",
             "JUDGE_MODEL": m.get("judge_model", "Amazon Bedrock model"), "DATE": m["date"],
@@ -44,7 +48,7 @@ def build(summary: dict, video: str | None, repo: str) -> str:
             "COMPARISON": comparison, "COST": cost, "CALIBRATION": calib, "FAILURES": fails,
             "UNSAFE_ALLOWED": c["unsafe_allowed"], "N_UNSAFE": c["n_unsafe"], "SAFE_BLOCKED": c["safe_blocked"],
             "N_SAFE": c["n_safe"], "ASKED": c["asked"], "ESCALATED": c["escalated"],
-            "REPO_LINK": repo, "VIDEO_LINK": video or "{{VIDEO_LINK}}"}
+            "SPLIT_NOTE": split_note, "REPO_LINK": repo, "VIDEO_LINK": video or "{{VIDEO_LINK}}"}
     for k, v in vals.items():
         t = t.replace("{{" + k + "}}", str(v))
     return t
