@@ -23,7 +23,8 @@ def build(summary: dict, video: str | None, repo: str) -> str:
     more = "higher" if d["accuracy"] > j["accuracy"] else ("lower" if d["accuracy"] < j["accuracy"] else "the same")
     comparison = (f"On this set Decider's accuracy was {pct(d['accuracy'])} against {pct(j['accuracy'])} for the judge "
                   f"({more} for Decider). Its median round trip was {d['p50_ms']:.1f} ms against {j['p50_ms']:.0f} ms, "
-                  f"about {ratio:.1f}x faster than the Bedrock call.")
+                  f"about {ratio:.1f}x faster than the Bedrock call. For context, always answering the majority class would score "
+                  f"{pct(summary.get('baseline_accuracy'))} on this set, so judge accuracy against that baseline.")
     cost = (f"Estimated judge cost: ${j['cost_per_1k_usd']:.4f} per 1,000 decisions, from token counts and Bedrock list prices. "
             "Decider runs locally, so its marginal cost is compute only."
             if j["cost_per_1k_usd"] is not None else

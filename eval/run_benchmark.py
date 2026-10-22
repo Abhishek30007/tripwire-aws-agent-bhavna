@@ -61,6 +61,7 @@ def run(cases: pd.DataFrame, decider, judge=None, policy=None, meta=None):
     s = {"meta": {**(meta or {}), "date": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
                   "n_cases": n, "label_counts": df.label.value_counts().to_dict(),
                   "policy": policy is not None},
+         "baseline_accuracy": max(len(good), len(bad)) / n,
          "decider": {"accuracy": float(df.d_ok.mean()), "p50_ms": float(df.d_ms.median()),
                      "p95_ms": float(df.d_ms.quantile(.95)), "p50_server_ms": float(df.d_server_ms.median())},
          "cascade": {"n_unsafe": len(bad), "unsafe_allowed": int((bad.action == "allow").sum()),
@@ -97,6 +98,7 @@ def markdown(s: dict) -> str:
            f"Question variant: {m.get('variant', 'v1')}; split: {m.get('split', 'all')}. Policy layer: {'on' if m['policy'] else 'off'}.\n",
            "## Accuracy and latency (grounded vs not grounded)\n",
            "| System | Accuracy | Median latency | p95 latency |", "|---|---|---|---|",
+           f"| Always answering the majority class (baseline) | {pct(s['baseline_accuracy'])} | n/a | n/a |",
            f"| Decider 2B (client round trip) | {pct(d['accuracy'])} | {d['p50_ms']:.1f} ms | {d['p95_ms']:.1f} ms |"]
     if j:
         out.append(f"| Bedrock LLM judge (`{m.get('judge_model', '?')}`) | {pct(j['accuracy'])} | {j['p50_ms']:.0f} ms | {j['p95_ms']:.0f} ms |")
