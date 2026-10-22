@@ -40,7 +40,11 @@ def test_judge_lane_uses_judge_and_logs_judged():
     v = Tripwire(Fixed(0.55), judge=FakeJudge(True)).evaluate("u", "", "t", {})
     assert (v.lane, v.action, v.judged) == ("llm_judge", "allow", True)
     v = Tripwire(Fixed(0.55), judge=FakeJudge(False)).evaluate("u", "", "t", {})
-    assert v.action == "block"
+    assert v.action == "ask"            # uncertain and judge says not grounded: ask, never silently allow
+    v = Tripwire(Fixed(0.75), judge=FakeJudge(True)).evaluate("u", "", "t", {})
+    assert (v.lane, v.action, v.judged) == ("llm_judge", "allow", True)   # medium band also goes to the judge
+    v = Tripwire(Fixed(0.03), judge=FakeJudge(True)).evaluate("u", "", "t", {})
+    assert (v.action, v.judged) == ("block", False)                       # confident blocks skip the judge
 
 
 def test_no_judge_falls_back_to_asking_user():
