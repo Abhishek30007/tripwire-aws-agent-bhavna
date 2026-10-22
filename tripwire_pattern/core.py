@@ -38,14 +38,15 @@ class Tripwire:
         a = self.decider.assess(user_text, tool_output, tool, args)
         lane, reason = route(a.p_grounded, a.p_injected, tool in self.destructive, self.t)
         judged = False
-        if lane == "llm_judge":
-            if self.judge is None:
-                action, reason = "ask", reason + "; no LLM judge configured, asking the user"
-            else:
-                j = self.judge.judge(user_text, tool_output, tool, args)
-                judged = True
-                action = "allow" if j.grounded else "block"
-                reason += f"; LLM judge says {'grounded' if j.grounded else 'ungrounded'}"
+        if lane in ("ask_user", "llm_judge") and self.judge is not None:
+            # Decider is not confident either way: the Bedrock judge resolves it. A "not grounded"
+            # verdict from an uncertain case asks the user instead of silently blocking.
+            j = self.judge.judge(user_text, tool_output, tool, args)
+            judged, lane = True, "llm_judge"
+            action = "allow" if j.grounded else "ask"
+            reason += f"; LLM judge says {'grounded' if j.grounded else 'not grounded, asking the user'}"
+        elif lane == "llm_judge":
+            action, reason = "ask", reason + "; no LLM judge configured, asking the user"
         else:
             action = {"allow": "allow", "block": "block", "ask_user": "ask"}[lane]
         violations = []

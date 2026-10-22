@@ -33,7 +33,7 @@ tripwire = Tripwire(DeciderClient(), destructive={"delete_bucket", "stop_instanc
 agent = Agent(tools=my_tools, interventions=[TripwireHandler(tripwire, guarded_tools={"delete_bucket"})])
 ```
 
-Actions returned to Strands: allow is `Proceed`, block is `Deny`, medium confidence is `Guide` (the agent asks the user). Pass `judge=BedrockJudge()` to `Tripwire` to send low-confidence cases to Bedrock; without a judge they become a question to the user.
+Actions returned to Strands: allow is `Proceed`, a confident block is `Deny`, and uncertain cases are `Guide` (the agent asks the user). Pass `judge=BedrockJudge()` to `Tripwire` to let Bedrock resolve every uncertain case first: a grounded verdict allows the call, anything else asks the user. Without a judge, uncertain cases always ask the user.
 
 ## Tune it
 
