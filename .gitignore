@@ -3,6 +3,4 @@
 __pycache__/
 *.py[cod]
 logs/
-eval/results.csv
-eval/results.md
-eval/summary.json
+
