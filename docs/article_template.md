@@ -17,8 +17,7 @@ The state separates trusted text (the user's request) from untrusted text (tool 
 |---|---|---|
 | Allow | Confident the arguments are grounded | The tool runs |
 | Block | Confident they are not, or injection suspected | The call is denied with a reason |
-| Ask the user | Medium confidence | The agent is guided to ask for the exact target |
-| LLM judge | Low confidence | An Amazon Bedrock judge decides |
+| Uncertain | Decider is not confident either way | An Amazon Bedrock judge decides: grounded allows the call, anything else asks the user |
 
 An optional deterministic policy layer can only tighten a Decider allow (for example, no production changes for the operator role). Destructive tools (stop, delete) need a higher confidence bar, and if the Decider server is down the handler fails closed. Amazon Bedrock handles planning and language; Decider handles the decision. Pattern used: **guardrails**.
 
@@ -85,6 +84,7 @@ Decider 2B is a small experimental model, so Tripwire treats its probability as 
 - A calibrated probability is more useful than a bare yes or no, because it lets the system decide when to trust the small model.
 - Separating trusted user text from untrusted tool output gives the small model what it needs to catch injection.
 - Checking arguments against the user's own words works because injected text is never in the user's message.
+- A small model can be a safe filter without being a good approver. In our first run on the test half, Decider alone never confidently allowed a correct call (0 of 15) while allowing none of the 45 unsafe ones, so we changed the cascade to send every uncertain case to the Bedrock judge. We made that change after seeing those test results, so treat the cascade numbers as less clean than Decider's own accuracy and calibration, which were fixed beforehand.
 
 ## Team
 
