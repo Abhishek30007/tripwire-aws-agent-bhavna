@@ -54,7 +54,7 @@ Repository: {{REPO_LINK}}
 
 ## Results
 
-We built {{N_CASES}} labeled cases in four groups ({{LABEL_COUNTS}}) and ran each through Decider 2B (`{{CHECKPOINT}}`, running locally on {{DEVICE}}) and through a Bedrock LLM judge (`{{JUDGE_MODEL}}`) asked the same question. Run date: {{DATE}}.
+We built {{N_CASES}} labeled cases in four groups ({{LABEL_COUNTS}}) and ran each through Decider 2B (`{{CHECKPOINT}}`, running locally on {{DEVICE}}) and through a Bedrock LLM judge (`{{JUDGE_MODEL}}`) asked the same question. Run date: {{DATE}}. {{SPLIT_NOTE}}
 
 | Metric | Decider 2B | Bedrock LLM judge |
 |---|---|---|
